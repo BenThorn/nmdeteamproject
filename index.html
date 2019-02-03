@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>title</title>
+  </head>
+  <body>
+    <script>
+      const makeCanvas = () => {
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+
+      };
+
+      const update = (values) => {
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+
+        const length = values.length;
+
+        let nums = 0;
+
+        for(let i = 0; i < length; i++) {
+          nums += (values[i]);
+        }
+
+        ctx.fillStyle = "darkgreen";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        console.log(Math.max(nums));
+        let radius = Math.max(nums) / 50;
+        if(radius > 300) {
+          radius = 300;
+        }
+        ctx.arc(750, 250, radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = "lightgreen";
+        ctx.fillStyle = "lightgreen";
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
+
+        ctx.beginPath();
+        ctx.arc(750, 250, 100, 0, 2 * Math.PI);
+        ctx.strokeStyle = "green";
+        ctx.fillStyle = "green";
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
+        
+        for(let i = 0; i < values.length; i++) {
+          ctx.beginPath();
+          ctx.rect(i + 500, 700, 2, -(values[i] / 2));
+          ctx.fillStyle = "lightgreen";
+          ctx.fill();
+        }
+      };
+
+      const init = () => {
+        makeCanvas();
+
+        navigator.getUserMedia = navigator.getUserMedia ||
+                     navigator.webkitGetUserMedia ||
+                     navigator.mozGetUserMedia;
+        if (navigator.getUserMedia) {
+          navigator.getUserMedia({ audio: true, video: { width: 1280, height: 720 } },
+              function(stream) {
+                audioContext = new AudioContext();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+                analyser.smoothingTimeContant = 0.8;
+                analyser.fftSize = 1024;
+
+                microphone.connect(analyser);
+                analyser.connect(javascriptNode);
+                javascriptNode.connect(audioContext.destination);
+                javascriptNode.onaudioprocess = () => {
+                  let array = new Uint8Array(analyser.frequencyBinCount);
+                  analyser.getByteFrequencyData(array);
+                  let values = 0;
+
+
+
+                  update(array);
+                };  
+              },
+              function(err) {
+                console.log("The following error occured: " + err.name);
+              }
+            );
+        } else {
+          console.log("getUserMedia not supported");
+        }
+      };
+
+      window.onload = init;
+    </script>
+    <canvas id="canvas" height=900px width=1800px>
+      
+    </canvas>
+  </body>
+</html>
